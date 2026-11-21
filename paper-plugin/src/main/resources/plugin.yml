@@ -1,0 +1,13 @@
+name: VolexDelivery
+version: '1.0.0'
+main: in.volex.delivery.VolexDeliveryPlugin
+api-version: '1.21'
+description: Automated store fulfillment bridge for VOLEXMC (play.volex.indevs.in)
+authors: [VOLEXMC]
+commands:
+  volexstatus:
+    description: Check store delivery bridge status
+    permission: volex.delivery.admin
+  volexclaim:
+    description: Trigger immediate delivery queue check
+    usage: /volexclaim

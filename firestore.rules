@@ -1,0 +1,314 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isVerified() && (
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        request.auth.token.email == 'shisirtharu16@gmail.com'
+      );
+    }
+
+    function isValidAdminUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'email', 'createdAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.createdAt is timestamp;
+    }
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['uid', 'email', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'email', 'displayName', 'minecraftUsername', 'photoURL', 'role', 'createdAt', 'updatedAt'])
+        && isValidId(data.uid)
+        && data.email is string && data.email.size() >= 3 && data.email.size() <= 200
+        && data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 100
+        && (!('minecraftUsername' in data) || (data.minecraftUsername is string && data.minecraftUsername.size() <= 32))
+        && (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500))
+        && data.role in ['user', 'admin']
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCategory(data) {
+      return data.keys().hasAll(['id', 'name', 'slug', 'icon', 'sortOrder', 'active'])
+        && data.keys().hasOnly(['id', 'name', 'slug', 'icon', 'sortOrder', 'active'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 40
+        && data.slug is string && data.slug.size() >= 1 && data.slug.size() <= 40 && data.slug.matches('^[a-z0-9\\-]+$')
+        && data.icon is string && data.icon.size() >= 1 && data.icon.size() <= 32
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000
+        && data.active is bool;
+    }
+
+    function isValidProduct(data) {
+      return data.keys().hasAll(['id', 'name', 'category', 'description', 'priceInr', 'imageUrl', 'accentColor', 'featured', 'featuredOrder', 'active', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'category', 'description', 'perks', 'priceInr', 'imageUrl', 'accentColor', 'featured', 'featuredOrder', 'active', 'updatedAt'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 80
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 240
+        && (!('perks' in data) || (data.perks is list && data.perks.size() <= 12 && (data.perks.size() == 0 || data.perks[0] is string)))
+        && data.priceInr is number && data.priceInr >= 1 && data.priceInr <= 1000000
+        && data.imageUrl is string && data.imageUrl.size() >= 1 && data.imageUrl.size() <= 400000
+        && data.accentColor in ['gold', 'cyan', 'purple', 'pink']
+        && data.featured is bool
+        && data.featuredOrder is number && data.featuredOrder >= 0 && data.featuredOrder <= 1000
+        && data.active is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidPaymentMethod(data) {
+      return data.keys().hasAll(['id', 'name', 'type', 'enabled', 'instructions', 'sortOrder', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'type', 'enabled', 'instructions', 'qrImageUrl', 'accountLabel', 'accountValue', 'sortOrder', 'updatedAt'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 50
+        && data.type in ['qr', 'gateway', 'manual']
+        && data.enabled is bool
+        && data.instructions is string && data.instructions.size() >= 1 && data.instructions.size() <= 600
+        && (!('qrImageUrl' in data) || (data.qrImageUrl is string && data.qrImageUrl.size() <= 400000))
+        && (!('accountLabel' in data) || (data.accountLabel is string && data.accountLabel.size() <= 80))
+        && (!('accountValue' in data) || (data.accountValue is string && data.accountValue.size() <= 120))
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 100
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['id', 'userId', 'minecraftUsername', 'productId', 'productName', 'amountInr', 'paymentMethodId', 'paymentMethodName', 'paymentProofUrl', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'minecraftUsername', 'productId', 'productName', 'productImage', 'amountInr', 'paymentMethodId', 'paymentMethodName', 'paymentProofUrl', 'transactionRef', 'status', 'adminNotes', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && isValidId(data.userId)
+        && data.minecraftUsername is string && data.minecraftUsername.matches('^[a-zA-Z0-9_]{3,16}$')
+        && isValidId(data.productId)
+        && data.productName is string && data.productName.size() >= 1 && data.productName.size() <= 80
+        && (!('productImage' in data) || (data.productImage is string && data.productImage.size() <= 400000))
+        && data.amountInr is number && data.amountInr >= 1 && data.amountInr <= 1000000
+        && isValidId(data.paymentMethodId)
+        && data.paymentMethodName is string && data.paymentMethodName.size() >= 1 && data.paymentMethodName.size() <= 50
+        && data.paymentProofUrl is string && data.paymentProofUrl.size() >= 1 && data.paymentProofUrl.size() <= 500000
+        && (!('transactionRef' in data) || (data.transactionRef is string && data.transactionRef.size() <= 100))
+        && data.status in ['Pending', 'Under Review', 'Approved', 'Rejected', 'Delivered']
+        && (!('adminNotes' in data) || (data.adminNotes is string && data.adminNotes.size() <= 400))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidSiteConfig(data) {
+      return data.keys().hasAll(['serverIp', 'minecraftVersion', 'discordUrl', 'heroEyebrow', 'heroTitle', 'heroSubtitle', 'heroDescription', 'heroCtaText', 'heroImageUrl', 'announcementEnabled', 'updatedAt'])
+        && data.keys().hasOnly(['serverIp', 'minecraftVersion', 'discordUrl', 'heroEyebrow', 'heroTitle', 'heroSubtitle', 'heroDescription', 'heroCtaText', 'heroImageUrl', 'announcementBanner', 'announcementEnabled', 'updatedAt'])
+        && data.serverIp is string && data.serverIp.size() >= 1 && data.serverIp.size() <= 100
+        && data.minecraftVersion is string && data.minecraftVersion.size() >= 1 && data.minecraftVersion.size() <= 30
+        && data.discordUrl is string && data.discordUrl.size() >= 1 && data.discordUrl.size() <= 200
+        && data.heroEyebrow is string && data.heroEyebrow.size() >= 1 && data.heroEyebrow.size() <= 60
+        && data.heroTitle is string && data.heroTitle.size() >= 1 && data.heroTitle.size() <= 60
+        && data.heroSubtitle is string && data.heroSubtitle.size() >= 1 && data.heroSubtitle.size() <= 80
+        && data.heroDescription is string && data.heroDescription.size() >= 1 && data.heroDescription.size() <= 180
+        && data.heroCtaText is string && data.heroCtaText.size() >= 1 && data.heroCtaText.size() <= 40
+        && data.heroImageUrl is string && data.heroImageUrl.size() >= 1 && data.heroImageUrl.size() <= 400000
+        && (!('announcementBanner' in data) || (data.announcementBanner is string && data.announcementBanner.size() <= 200))
+        && data.announcementEnabled is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidStaffMember(data) {
+      return data.keys().hasAll(['id', 'name', 'role', 'rankColor', 'minecraftUsername', 'bio', 'sortOrder', 'active'])
+        && data.keys().hasOnly(['id', 'name', 'role', 'rankColor', 'minecraftUsername', 'bio', 'sortOrder', 'active'])
+        && isValidId(data.id)
+        && data.name is string && data.name.size() >= 1 && data.name.size() <= 60
+        && data.role is string && data.role.size() >= 1 && data.role.size() <= 40
+        && data.rankColor in ['purple', 'gold', 'cyan', 'pink']
+        && data.minecraftUsername is string && data.minecraftUsername.size() >= 1 && data.minecraftUsername.size() <= 32
+        && data.bio is string && data.bio.size() >= 1 && data.bio.size() <= 240
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 100
+        && data.active is bool;
+    }
+
+    function isValidWikiArticle(data) {
+      return data.keys().hasAll(['id', 'title', 'category', 'summary', 'content', 'sortOrder', 'published', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'title', 'category', 'summary', 'content', 'sortOrder', 'published', 'updatedAt'])
+        && isValidId(data.id)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 120
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40
+        && data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 240
+        && data.content is string && data.content.size() >= 1 && data.content.size() <= 8000
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000
+        && data.published is bool
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidServerRule(data) {
+      return data.keys().hasAll(['id', 'title', 'category', 'description', 'punishment', 'severity', 'sortOrder'])
+        && data.keys().hasOnly(['id', 'title', 'category', 'description', 'punishment', 'severity', 'sortOrder'])
+        && isValidId(data.id)
+        && data.title is string && data.title.size() >= 1 && data.title.size() <= 100
+        && data.category is string && data.category.size() >= 1 && data.category.size() <= 40
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 400
+        && data.punishment is string && data.punishment.size() >= 1 && data.punishment.size() <= 120
+        && data.severity in ['Low', 'Medium', 'High', 'Critical']
+        && data.sortOrder is number && data.sortOrder >= 0 && data.sortOrder <= 1000;
+    }
+
+    function isValidSupportTicket(data) {
+      return data.keys().hasAll(['id', 'userId', 'minecraftUsername', 'subject', 'category', 'message', 'status', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'userId', 'minecraftUsername', 'subject', 'category', 'message', 'status', 'adminReply', 'createdAt', 'updatedAt'])
+        && isValidId(data.id)
+        && isValidId(data.userId)
+        && data.minecraftUsername is string && data.minecraftUsername.size() >= 3 && data.minecraftUsername.size() <= 16
+        && data.subject is string && data.subject.size() >= 3 && data.subject.size() <= 120
+        && data.category in ['Purchase Issue', 'Account & Rank', 'Bug Report', 'Player Report', 'Other']
+        && data.message is string && data.message.size() >= 10 && data.message.size() <= 2000
+        && data.status in ['Open', 'In Progress', 'Resolved', 'Closed']
+        && (!('adminReply' in data) || (data.adminReply is string && data.adminReply.size() <= 1000))
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+
+    match /admins/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isAdmin() && isValidId(uid) && isValidAdminUser(incoming()) && incoming().uid == uid && incoming().createdAt == request.time;
+      allow update: if false;
+      allow delete: if isAdmin() && isValidId(uid);
+    }
+
+    match /users/{uid} {
+      allow get: if isValidId(uid) && (isOwner(uid) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isVerified() && isOwner(uid) && isValidId(uid) && isValidUserProfile(incoming())
+        && incoming().uid == uid
+        && incoming().role == 'user'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isVerified() && isValidId(uid) && isValidUserProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'minecraftUsername', 'photoURL', 'role', 'updatedAt'])) ||
+          (isOwner(uid) && incoming().role == existing().role && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'minecraftUsername', 'photoURL', 'updatedAt']))
+        );
+      allow delete: if isAdmin() && isValidId(uid);
+    }
+
+    match /categories/{categoryId} {
+      allow get: if isValidId(categoryId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().id == categoryId;
+      allow update: if isAdmin() && isValidId(categoryId) && isValidCategory(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(categoryId);
+    }
+
+    match /products/{productId} {
+      allow get: if isValidId(productId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().id == productId && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(productId) && isValidProduct(incoming()) && incoming().id == existing().id && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(productId);
+    }
+
+    match /paymentMethods/{methodId} {
+      allow get: if isValidId(methodId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(methodId) && isValidPaymentMethod(incoming()) && incoming().id == methodId && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(methodId) && isValidPaymentMethod(incoming()) && incoming().id == existing().id && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(methodId);
+    }
+
+    match /orders/{orderId} {
+      allow get: if isSignedIn() && isValidId(orderId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(orderId) && isValidOrder(incoming())
+        && incoming().id == orderId
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'Pending'
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(orderId) && isValidOrder(incoming())
+        && incoming().id == existing().id
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'adminNotes', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(orderId);
+    }
+
+    match /siteConfig/{configId} {
+      allow get: if isValidId(configId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(configId) && isValidSiteConfig(incoming()) && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(configId) && isValidSiteConfig(incoming()) && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(configId);
+    }
+
+    match /staff/{staffId} {
+      allow get: if isValidId(staffId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(staffId) && isValidStaffMember(incoming()) && incoming().id == staffId;
+      allow update: if isAdmin() && isValidId(staffId) && isValidStaffMember(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(staffId);
+    }
+
+    match /wikiArticles/{articleId} {
+      allow get: if isValidId(articleId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(articleId) && isValidWikiArticle(incoming()) && incoming().id == articleId && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(articleId) && isValidWikiArticle(incoming()) && incoming().id == existing().id && incoming().updatedAt == request.time;
+      allow delete: if isAdmin() && isValidId(articleId);
+    }
+
+    match /rules/{ruleId} {
+      allow get: if isValidId(ruleId);
+      allow list: if true;
+      allow create: if isAdmin() && isValidId(ruleId) && isValidServerRule(incoming()) && incoming().id == ruleId;
+      allow update: if isAdmin() && isValidId(ruleId) && isValidServerRule(incoming()) && incoming().id == existing().id;
+      allow delete: if isAdmin() && isValidId(ruleId);
+    }
+
+    match /supportTickets/{ticketId} {
+      allow get: if isSignedIn() && isValidId(ticketId) && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isVerified() && isValidId(ticketId) && isValidSupportTicket(incoming())
+        && incoming().id == ticketId
+        && incoming().userId == request.auth.uid
+        && incoming().status == 'Open'
+        && !('adminReply' in incoming())
+        && incoming().createdAt == request.time
+        && incoming().updatedAt == request.time;
+      allow update: if isAdmin() && isValidId(ticketId) && isValidSupportTicket(incoming())
+        && incoming().id == existing().id
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && incoming().diff(existing()).affectedKeys().hasOnly(['status', 'adminReply', 'updatedAt']);
+      allow delete: if isAdmin() && isValidId(ticketId);
+    }
+  }
+}

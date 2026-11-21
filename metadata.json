@@ -1,0 +1,6 @@
+{
+  "name": "VOLEXMC",
+  "description": "VOLEXMC Premium Minecraft Server Store — Ranks, Crate Keys, Mystery Crates, Pets, Cosmetics, Wiki, Support, and Admin Management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,5 @@
+api-url: "https://your-volexmc-store-url"
+plugin-api-key: "REPLACE_WITH_KEY_FROM_ADMIN_PANEL"
+poll-interval-seconds: 15
+server-name: "VOLEXMC"
+require-player-online: false

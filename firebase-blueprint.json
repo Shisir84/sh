@@ -1,0 +1,237 @@
+{
+  "entities": {
+    "AdminUser": {
+      "title": "AdminUser",
+      "description": "Authorized administrator record granting store management permissions.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Registered VOLEXMC store user profile including linked Minecraft username.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "email": { "type": "string", "format": "email", "maxLength": 200 },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "minecraftUsername": { "type": "string", "maxLength": 32 },
+        "photoURL": { "type": "string", "maxLength": 500 },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Store product category displayed in the left sidebar and catalog filters.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "slug": { "type": "string", "minLength": 1, "maxLength": 40, "pattern": "^[a-z0-9\\-]+$" },
+        "icon": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "sortOrder": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "name", "slug", "icon", "sortOrder", "active"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Store product (Rank, Key, Crate, Pet, Cosmetic, Economy, Other) editable by admins.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "perks": { "type": "array" },
+        "priceInr": { "type": "number" },
+        "imageUrl": { "type": "string", "minLength": 1, "maxLength": 400000 },
+        "accentColor": { "type": "string", "enum": ["gold", "cyan", "purple", "pink"] },
+        "featured": { "type": "boolean" },
+        "featuredOrder": { "type": "number" },
+        "active": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "category", "description", "priceInr", "imageUrl", "accentColor", "featured", "featuredOrder", "active", "updatedAt"]
+    },
+    "PaymentMethod": {
+      "title": "PaymentMethod",
+      "description": "Configured payment method and optional manual QR checkout details.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "type": { "type": "string", "enum": ["qr", "gateway", "manual"] },
+        "enabled": { "type": "boolean" },
+        "instructions": { "type": "string", "minLength": 1, "maxLength": 600 },
+        "qrImageUrl": { "type": "string", "maxLength": 400000 },
+        "accountLabel": { "type": "string", "maxLength": 80 },
+        "accountValue": { "type": "string", "maxLength": 120 },
+        "sortOrder": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "type", "enabled", "instructions", "sortOrder", "updatedAt"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Store purchase order with uploaded payment proof and manual admin verification status.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "minecraftUsername": { "type": "string", "minLength": 3, "maxLength": 16, "pattern": "^[a-zA-Z0-9_]{3,16}$" },
+        "productId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "productName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "productImage": { "type": "string", "maxLength": 400000 },
+        "amountInr": { "type": "number" },
+        "paymentMethodId": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "paymentMethodName": { "type": "string", "minLength": 1, "maxLength": 50 },
+        "paymentProofUrl": { "type": "string", "minLength": 1, "maxLength": 500000 },
+        "transactionRef": { "type": "string", "maxLength": 100 },
+        "status": { "type": "string", "enum": ["Pending", "Under Review", "Approved", "Rejected", "Delivered"] },
+        "adminNotes": { "type": "string", "maxLength": 400 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "minecraftUsername", "productId", "productName", "amountInr", "paymentMethodId", "paymentMethodName", "paymentProofUrl", "status", "createdAt", "updatedAt"]
+    },
+    "SiteConfig": {
+      "title": "SiteConfig",
+      "description": "Global server and homepage configuration editable in the admin dashboard.",
+      "type": "object",
+      "properties": {
+        "serverIp": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "minecraftVersion": { "type": "string", "minLength": 1, "maxLength": 30 },
+        "discordUrl": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "heroEyebrow": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "heroTitle": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "heroSubtitle": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "heroDescription": { "type": "string", "minLength": 1, "maxLength": 180 },
+        "heroCtaText": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "heroImageUrl": { "type": "string", "minLength": 1, "maxLength": 400000 },
+        "announcementBanner": { "type": "string", "maxLength": 200 },
+        "announcementEnabled": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["serverIp", "minecraftVersion", "discordUrl", "heroEyebrow", "heroTitle", "heroSubtitle", "heroDescription", "heroCtaText", "heroImageUrl", "announcementEnabled", "updatedAt"]
+    },
+    "StaffMember": {
+      "title": "StaffMember",
+      "description": "Server staff roster member.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "role": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "rankColor": { "type": "string", "enum": ["purple", "gold", "cyan", "pink"] },
+        "minecraftUsername": { "type": "string", "minLength": 1, "maxLength": 32 },
+        "bio": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "sortOrder": { "type": "number" },
+        "active": { "type": "boolean" }
+      },
+      "required": ["id", "name", "role", "rankColor", "minecraftUsername", "bio", "sortOrder", "active"]
+    },
+    "WikiArticle": {
+      "title": "WikiArticle",
+      "description": "Server wiki guide or documentation article.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "content": { "type": "string", "minLength": 1, "maxLength": 8000 },
+        "sortOrder": { "type": "number" },
+        "published": { "type": "boolean" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "category", "summary", "content", "sortOrder", "published", "updatedAt"]
+    },
+    "ServerRule": {
+      "title": "ServerRule",
+      "description": "Server gameplay or community rule entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "category": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 400 },
+        "punishment": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "severity": { "type": "string", "enum": ["Low", "Medium", "High", "Critical"] },
+        "sortOrder": { "type": "number" }
+      },
+      "required": ["id", "title", "category", "description", "punishment", "severity", "sortOrder"]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "Player support ticket submitted from the Support page.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "userId": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[a-zA-Z0-9_\\-]+$" },
+        "minecraftUsername": { "type": "string", "minLength": 3, "maxLength": 16 },
+        "subject": { "type": "string", "minLength": 3, "maxLength": 120 },
+        "category": { "type": "string", "enum": ["Purchase Issue", "Account & Rank", "Bug Report", "Player Report", "Other"] },
+        "message": { "type": "string", "minLength": 10, "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Resolved", "Closed"] },
+        "adminReply": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "minecraftUsername", "subject", "category", "message", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/admins/{uid}": {
+      "schema": { "$ref": "#/entities/AdminUser" },
+      "description": "Admin directory mapping UIDs to admin access."
+    },
+    "/users/{uid}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Authenticated user profiles with PII restricted to owner and admins."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Store product categories."
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Store catalog items."
+    },
+    "/paymentMethods/{methodId}": {
+      "schema": { "$ref": "#/entities/PaymentMethod" },
+      "description": "Configured payment methods and manual QR codes."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Player purchase orders awaiting manual verification and delivery."
+    },
+    "/siteConfig/{configId}": {
+      "schema": { "$ref": "#/entities/SiteConfig" },
+      "description": "Dynamic homepage, banner, and server configuration."
+    },
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/StaffMember" },
+      "description": "Public staff team roster."
+    },
+    "/wikiArticles/{articleId}": {
+      "schema": { "$ref": "#/entities/WikiArticle" },
+      "description": "Public wiki knowledge base articles."
+    },
+    "/rules/{ruleId}": {
+      "schema": { "$ref": "#/entities/ServerRule" },
+      "description": "Public server rules."
+    },
+    "/supportTickets/{ticketId}": {
+      "schema": { "$ref": "#/entities/SupportTicket" },
+      "description": "Player support tickets."
+    }
+  }
+}

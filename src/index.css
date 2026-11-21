@@ -1,0 +1,216 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --volex-bg: #060714;
+    --volex-primary: #9333ea;
+    --volex-secondary: #22d3ee;
+    --volex-btn: #7c3aed;
+    --volex-border: #9333ea;
+    --volex-glow: 0.75;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--volex-bg, #050510);
+  color: #f1f5f9;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-nums {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+}
+
+.volex-no-animations .particle-float,
+.volex-no-animations .cloud-drift-slow,
+.volex-no-animations .portal-spin,
+.volex-no-animations .crystal-levitate,
+.volex-no-animations .dragon-soar,
+.volex-no-animations .text-aura-pulse {
+  animation: none !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.volex-custom-cursor,
+  html.volex-custom-cursor body,
+  html.volex-custom-cursor a,
+  html.volex-custom-cursor button,
+  html.volex-custom-cursor [role="button"],
+  html.volex-custom-cursor label {
+    cursor: none !important;
+  }
+
+  html.volex-custom-cursor input,
+  html.volex-custom-cursor textarea,
+  html.volex-custom-cursor select {
+    cursor: text !important;
+  }
+
+  html.volex-custom-cursor select,
+  html.volex-custom-cursor input[type="checkbox"],
+  html.volex-custom-cursor input[type="file"] {
+    cursor: pointer !important;
+  }
+}
+
+/* Subtle glassmorphism and neon borders */
+.volex-panel {
+  background: linear-gradient(180deg, rgba(16, 17, 40, 0.9) 0%, rgba(8, 9, 24, 0.95) 100%);
+  border: 1px solid color-mix(in srgb, var(--volex-border, #9333ea) 32%, transparent);
+  box-shadow:
+    0 14px 36px -14px rgba(0, 0, 0, 0.78),
+    0 0 24px -12px color-mix(in srgb, var(--volex-primary, #9333ea) calc(var(--volex-glow, 0.75) * 40%), transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+.volex-glow-btn {
+  background: linear-gradient(
+    135deg,
+    var(--volex-primary, #9333ea) 0%,
+    var(--volex-btn, #7c3aed) 58%,
+    color-mix(in srgb, var(--volex-btn, #7c3aed) 68%, #000) 100%
+  );
+  box-shadow:
+    0 0 22px color-mix(in srgb, var(--volex-primary, #9333ea) calc(var(--volex-glow, 0.75) * 68%), transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 180ms ease;
+}
+
+.volex-glow-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 34px color-mix(in srgb, var(--volex-primary, #9333ea) calc(var(--volex-glow, 0.75) * 95%), transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  filter: brightness(1.09);
+}
+
+.volex-glow-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translate3d(0px, 0px, 0px);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(8px, -22px, 0px);
+    opacity: 0.85;
+  }
+}
+
+@keyframes cloudDriftSlow {
+  0% {
+    transform: translate3d(-6%, 0, 0);
+  }
+  50% {
+    transform: translate3d(6%, -4px, 0);
+  }
+  100% {
+    transform: translate3d(-6%, 0, 0);
+  }
+}
+
+@keyframes portalRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.04);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes crystalLevitate {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) rotate(5deg);
+  }
+}
+
+@keyframes dragonSoar {
+  0% {
+    transform: translate3d(-12%, 10px, 0) scale(0.95) rotate(-3deg);
+    opacity: 0.35;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate3d(42%, -16px, 0) scale(1.05) rotate(2deg);
+    opacity: 0.92;
+  }
+  80% {
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate3d(105%, 8px, 0) scale(0.92) rotate(-2deg);
+    opacity: 0.15;
+  }
+}
+
+@keyframes textAuraPulse {
+  0%, 100% {
+    text-shadow: 0 0 22px rgba(168, 85, 247, 0.55), 0 0 42px rgba(124, 58, 237, 0.28);
+  }
+  50% {
+    text-shadow: 0 0 32px rgba(192, 132, 252, 0.85), 0 0 60px rgba(139, 92, 246, 0.45);
+  }
+}
+
+.particle-float {
+  animation: floatParticle 6s ease-in-out infinite;
+}
+
+.cloud-drift-slow {
+  animation: cloudDriftSlow 22s ease-in-out infinite;
+}
+
+.portal-spin {
+  animation: portalRotate 18s linear infinite;
+}
+
+.crystal-levitate {
+  animation: crystalLevitate 5.4s ease-in-out infinite;
+}
+
+.dragon-soar {
+  animation: dragonSoar 20s ease-in-out infinite;
+}
+
+.text-aura-pulse {
+  animation: textAuraPulse 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .particle-float,
+  .cloud-drift-slow,
+  .portal-spin,
+  .crystal-levitate,
+  .dragon-soar,
+  .text-aura-pulse {
+    animation: none;
+  }
+}
+
